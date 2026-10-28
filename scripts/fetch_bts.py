@@ -21,7 +21,9 @@ def validate_archive(path):
         return archive.namelist()
 
 
-def fetch(url, directory, year, quarter):
+def fetch(url, directory, year, quarter, max_bytes=250 * 1024 * 1024):
+    if max_bytes <= 0:
+        raise ValueError('Download size limit must be positive')
     parsed = urllib.parse.urlsplit(url)
     if parsed.scheme != 'https' or not (parsed.hostname == 'bts.gov' or (parsed.hostname or '').endswith('.bts.gov')):
         raise ValueError('Use a verified official HTTPS BTS download URL')
@@ -39,7 +41,14 @@ def fetch(url, directory, year, quarter):
         digest = hashlib.sha256()
         with os.fdopen(fd, 'wb') as out, urllib.request.urlopen(url, timeout=120) as response:
             final_url = response.url
+            declared = response.headers.get('Content-Length')
+            if declared and int(declared) > max_bytes:
+                raise ValueError('Archive exceeds compressed download size limit')
+            received = 0
             while chunk := response.read(1024 * 1024):
+                received += len(chunk)
+                if received > max_bytes:
+                    raise ValueError('Transfer exceeds compressed download size limit')
                 digest.update(chunk)
                 out.write(chunk)
         members = validate_archive(temporary)
@@ -60,11 +69,13 @@ def main():
     parser.add_argument('--year', type=int, required=True)
     parser.add_argument('--quarter', type=int, choices=range(1, 5), required=True)
     parser.add_argument('--url', action='append', required=True)
+    parser.add_argument('--max-mib', type=int, default=250,
+                        help='Maximum compressed MiB per archive (default: 250)')
     args = parser.parse_args()
     root = Path(__file__).resolve().parents[1]
     directory = root / 'data' / 'raw' / f'{args.year}Q{args.quarter}'
     for url in args.url:
-        fetch(url, directory, args.year, args.quarter)
+        fetch(url, directory, args.year, args.quarter, args.max_mib * 1024 * 1024)
 
 
 if __name__ == '__main__':

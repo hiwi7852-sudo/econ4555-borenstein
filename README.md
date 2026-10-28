@@ -1,18 +1,22 @@
 # Airline competition replication: single-quarter pilot
 
-This project updates Severin Borenstein’s 1989 paper, “Hubs and High Fares: Dominance and Market Power in the U.S. Airline Industry,” for one recent quarter. Deliverables are a modern **Table 1** and the **OLS columns of Table 2**. We will not estimate 2SLS models or Table 3.
+This project updates Severin Borenstein’s 1989 paper, “Hubs and High Fares: Dominance and Market Power in the U.S. Airline Industry,” for Spring 2025, targeting **2025 Q2 (April 1–June 30, 2025)**, the calendar quarter that most closely matches spring. Deliverables are a modern **Table 1** and the **OLS columns of Table 2**. We will not estimate 2SLS models or Table 3.
 
 The initial Question 1 plan is preserved unchanged in [docs/initial-plan-question-1.md](docs/initial-plan-question-1.md) and commit `35cdf82`.
 
-## 1. Select and acquire the latest common quarter
+## 1. Acquire Spring 2025 DB1B and matching T-100
 
-Select the latest complete quarter publicly available for both the required origin–destination fare survey and all three months of T-100 operations. Verify official release coverage before selecting a period; do not infer availability from the calendar or mix periods.
+Use **DB1B for 2025 Q2**, subject to confirming its official availability, and matching April, May, and June 2025 T-100 observations. The professor has approved Spring 2025 DB1B; do not download DB1C or switch to a newer quarter. If Q2 is unavailable, verify adjacent quarters and choose the nearest common available quarter, reporting the substitution explicitly.
 
-The original paper used **DB1A**. Verify the applicable modern Origin and Destination Survey product, its relationship to **DB1B**, and subsequent reporting changes. Record the actual product name, sampling rate, coverage, and field changes rather than silently labeling a successor DB1A. Obtain ticket, market, and coupon/itinerary components as needed.
+The paper used historical DB1A; this pilot deliberately uses DB1B. Begin with **DB1B Market** for market fares, passengers, endpoints, and market carriers. Inspect its schema before adding **DB1B Ticket** for ticket-level origins and trip structure. Download **DB1B Coupon** only if segment and carrier details needed for the pilot cannot be recovered from the smaller components. Distinguish market-level allocated fares from ticket fares when implementing the paper’s directional-fare definition.
+
+Prioritize manageable files: inspect sizes before downloading; stream compressed archives and read CSVs in chunks rather than extracting every file or loading entire tables into memory. The downloader defaults to a **250 MiB compressed-size limit per archive** and stops oversized transfers. This is a practical pilot limit, not an assertion about actual source file sizes. Obtain quarter/month-filtered official downloads where available; if T-100 is distributed annually, retain only Q2 observations during preparation and report the annual archive’s coverage separately.
+
+If full-quarter files remain impractical, define a reproducible subset of airport-pair markets selected by a predeclared traffic rule. Retain every eligible carrier and fare observation within those markets rather than randomly discarding fares or airlines. Compute airport shares from the broader quarter before restricting regression markets; otherwise label them as subset shares and explain the resulting limitation. A subset Table 1 must label its benchmark as a subset rather than national domestic traffic. Report the subset rule and coverage. Never treat a partial or truncated download as a usable subset.
 
 Acquire **T-100 Domestic Segment** data for performed departures, seats, passengers, aircraft information, and distances. Add **T-100 Domestic Market** where needed to distinguish on-flight markets and airport enplanements from nonstop segments. Restrict operations to scheduled passenger service.
 
-Official sources: [BTS TranStats](https://www.transtats.bts.gov/) and [BTS](https://www.bts.gov/). The selected quarter remains unverified because network access is blocked; [acquisition status](docs/data-acquisition.md) records the evidence and next steps.
+Official sources: [BTS TranStats](https://www.transtats.bts.gov/) and [BTS](https://www.bts.gov/). Q2 is the requested target; source availability and actual downloaded coverage remain unverified because network access is blocked; [acquisition status](docs/data-acquisition.md) records the evidence and next steps.
 
 ## 2. Construct a comparable sample
 
