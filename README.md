@@ -1,70 +1,48 @@
-Borenstein’s *“Hubs and High Fares: Dominance and Market Power in the U.S. Airline Industry”* asks whether an airline’s dominance on a route and at its endpoint airports helps it charge higher fares. I recommend organizing this project around a close replication with recent data, followed by clearly separated extensions.
+# Airline competition replication: single-quarter pilot
 
-The key distinction to preserve is **an airline’s own market share versus overall market concentration**. Borenstein finds that dominant airlines can sustain higher fares without creating an equivalent price “umbrella” for smaller competitors. His results also suggest that airport dominance matters beyond dominance on individual routes, although separating these effects precisely is difficult.
+This project updates Severin Borenstein’s 1989 paper, “Hubs and High Fares: Dominance and Market Power in the U.S. Airline Industry,” for one recent quarter. Deliverables are a modern **Table 1** and the **OLS columns of Table 2**. We will not estimate 2SLS models or Table 3.
 
-**1. Establish the replication benchmarks**
+The initial Question 1 plan is preserved unchanged in [docs/initial-plan-question-1.md](docs/initial-plan-question-1.md) and commit `35cdf82`.
 
-The original study uses third-quarter 1987 data and two complementary approaches:
+## 1. Select and acquire the latest common quarter
 
-- A fare equation relating an airline’s prices to its route share, endpoint-airport shares, concentration, and cost and service characteristics.
-- A relative-price equation comparing two airlines serving the same route, which removes characteristics common to that route.
+Select the latest complete quarter publicly available for both the required origin–destination fare survey and all three months of T-100 operations. Verify official release coverage before selecting a period; do not infer availability from the calendar or mix periods.
 
-Both approaches examine passenger-weighted **20th, 50th, and 80th percentile fares**. These are percentiles of fares actually paid, rather than advertised prices or separate regressions on individual passengers.
+The original paper used **DB1A**. Verify the applicable modern Origin and Destination Survey product, its relationship to **DB1B**, and subsequent reporting changes. Record the actual product name, sampling rate, coverage, and field changes rather than silently labeling a successor DB1A. Obtain ticket, market, and coupon/itinerary components as needed.
 
-Our central questions would be whether, in recent data:
+Acquire **T-100 Domestic Segment** data for performed departures, seats, passengers, aircraft information, and distances. Add **T-100 Domestic Market** where needed to distinguish on-flight markets and airport enplanements from nonstop segments. Restrict operations to scheduled passenger service.
 
-- Airlines with larger route shares charge higher fares, holding concentration constant.
-- Airlines with larger endpoint-airport shares charge higher fares, holding route share constant.
-- These relationships differ across the fare distribution.
-- Smaller competitors share in dominant airlines’ fare premiums.
+Official sources: [BTS TranStats](https://www.transtats.bts.gov/) and [BTS](https://www.bts.gov/). The selected quarter remains unverified because network access is blocked; [acquisition status](docs/data-acquisition.md) records the evidence and next steps.
 
-**2. Define a comparable sample and market**
+## 2. Construct a comparable sample
 
-Start with domestic airport-pair origin–destination markets, keeping connecting itineraries distinct from the individual flight segments they use. A passenger connecting through a hub should not count as a local customer of that hub.
+- Define airport-pair origin–destination markets. Connecting passengers are not local customers of the connecting airport.
+- Normalize one-way and round-trip fares to directional travel using the modern survey’s documented structure, avoiding double-counting.
+- Follow the original exclusions where fields permit: first class, interline travel, international itineraries, more than one plane change per direction, invalid fares, and unmatched operations. Document modern fare-class limitations and choose a defensible low-fare threshold rather than mechanically applying the nominal 1987 $10 cutoff.
+- Map reporting/marketing and operating carriers, regional affiliates, and parent airlines consistently before joining fares and operations or computing shares.
+- Include all eligible competitors in share and concentration denominators. Define regression-carrier coverage from modern data availability rather than retaining the nine historical airlines.
+- Begin with the original Table 2 eligibility rule: at least ten passengers daily and 10% route share, accounting for survey sampling. Select one eligible carrier per route randomly with a fixed seed, matching the original design. An all-carrier analysis with route-clustered inference is a sensitivity check.
 
-The original analysis covers nine major airlines, excludes first-class and interline travel, and permits at most one plane change per directional trip. Its regression eligibility thresholds require a carrier to carry at least ten passengers daily and have at least 10% route share. We should document these rules and decide which can be reproduced faithfully.
+## 3. Produce a modern Table 1
 
-For modern data, carrier ownership, regional affiliates, codeshares, and marketing versus operating carriers will require explicit treatment. Market shares should include eligible competitors beyond the airlines selected for regression observations.
+Recreate the descriptive fare-per-mile comparisons using nonstop origin–destination distance and the original distance categories: under 200, 200–500, 500–1,000, 1,000–1,500, 1,500–2,000, and over 2,000 miles. Implement nonoverlapping boundaries and document passenger weighting and yield aggregation.
 
-**3. Build the data around the paper’s concepts**
+Include the domestic benchmark and selected modern dominant airline–airport pairs. For each pair, compare the airline’s fares away from that airport, its fares to/from that airport, and other airlines’ fares to/from that airport. Display both origination and enplanement shares. Declare dominance and traffic thresholds before examining fare premiums; do not automatically reuse the historical hub examples. These are descriptive comparisons.
 
-We can leave source selection open while establishing the required information:
+## 4. Produce an updated Table 2 with OLS
 
-| Information | Purpose |
-|---|---|
-| Fares, passenger counts, ticket origins, destinations, and itineraries | Construct fare percentiles, route shares, and airport origination shares |
-| Flight operations, seats, passengers, and distances | Measure frequency, load factors, aircraft size, connections, and circuity |
-| Carrier financial information | Construct cost controls and competitors’ cost measures |
-| Airport and local-market characteristics | Account for congestion, tourism, and demand differences |
+Estimate separate log-fare equations for passenger-weighted 20th, 50th, and 80th percentile fares. These are percentiles of fares actually paid, not advertised fares or individual-level quantile regressions.
 
-A particularly important distinction is **airport originations versus enplanements**: the latter includes connecting passengers. Borenstein primarily measures airport dominance using originations, weighting the endpoints by where travelers originally began their tickets.
+Preserve the distinction between carrier-specific dominance and overall concentration. Target the original controls: route distance, load factor, aircraft size, frequency, circuity, on-plane stops, plane changes, endpoint origination share (ORGSHARE), endpoint origination HHI (ORGHERF), route share (RUTSHARE), route HHI (RUTHERF), competitors’ standardized costs, tourism orientation, carrier effects, and airport scarcity controls. Follow the original log-versus-level specification where feasible.
 
-We should also determine whether modern reported fares adequately capture ancillary charges and differences in fare products. Any limitations would be documented before interpreting changes since 1987.
+Construct endpoint weights from where passengers originally began their tickets. Distinguish airport originations from enplanements, which include connecting traffic. Build service measures from itinerary segments, then aggregate with passenger weights; document limitations of joining modern itinerary records to monthly T-100 operations.
 
-**4. Reproduce descriptive patterns before estimating models**
+T-100 and fare data alone may not supply competitor financial costs, tourism measures, or credible airport scarcity indicators. Audit fields first, identify necessary supplementary sources, and maintain a crosswalk from each original variable to its modern counterpart. If controls are unavailable, report a clearly labeled reduced-control pilot specification with explicit omissions or proxies; do not call it an exact Table 2 replication.
 
-First produce sample counts, exclusion summaries, market-share distributions, and fare distributions. Then recreate the logic of the paper’s descriptive comparisons: dominant airlines’ fares at their hubs, their fares elsewhere, and competitors’ fares at those hubs, accounting for distance.
+Report coefficients, standard errors, sample sizes, fit statistics, and fare differences associated with percentage-point share changes. Use heteroskedasticity-robust standard errors for the one-carrier-per-route baseline. OLS estimates are conditional associations: fares, shares, and service choices are jointly determined. Fare premiums do not directly establish markups or welfare effects.
 
-These checks will help identify construction errors and establish whether the basic hub-premium pattern appears in the newer sample.
+## 5. Validate and deliver
 
-**5. Estimate the two core models and assess identification**
+Keep raw downloads separate from code and record source URLs, retrieval times, release coverage, sizes, and SHA-256 hashes. Validate archive integrity, schemas, actual periods, carrier mappings, join coverage, duplicates, fares, passenger totals, share sums, and HHI bounds. Report sample attrition at each exclusion.
 
-Begin with the original log-fare specifications and carrier effects. Present ordinary least squares alongside an assessment of the original instrumental-variable approach.
-
-Borenstein recognizes that fares and route shares are jointly determined. His instruments use carriers’ presence at both endpoint airports to predict route share and construct an instrument for route concentration. We should evaluate their relevance and exclusion assumptions in the modern industry rather than assume they remain valid.
-
-The original study also acknowledges potentially endogenous service choices and airport dominance. Consequently, the baseline results should be interpreted as conditional relationships unless a stronger identification strategy is justified.
-
-**6. Add focused modern robustness checks**
-
-After establishing the comparable baseline:
-
-- Use multiple quarters, accounting for seasonality and separating pandemic disruption if relevant.
-- Retain all eligible carrier observations with appropriate clustered inference, alongside the original random-selection approach.
-- Compare airport-pair and metropolitan-area market definitions.
-- Examine sensitivity to carrier grouping, sample thresholds, and nonstop versus connecting service.
-- Assess whether low-cost-carrier presence changes dominance premiums.
-
-Panel fixed effects or an entry, merger, or airport-capacity event could support a later causal extension, subject to available data and credible assumptions.
-
-The initial deliverables should be a variable crosswalk to the paper, a reproducible cleaning pipeline, descriptive tables, and counterparts to its two main regression tables. The final interpretation should distinguish fare premiums from directly measured markups and welfare effects: higher hub fares alone do not establish whether hub networks’ costs outweigh their service benefits.
+Deliver a reproducible preparation and OLS pipeline, data/variable crosswalk, updated Tables 1 and 2, and a short discussion of dominance premiums and comparability limits. Multi-quarter panels, Table 3, 2SLS, and causal extensions are outside this pilot.
